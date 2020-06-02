@@ -2,9 +2,9 @@ import numpy as np
 from numpy import random
 import warnings
 warnings.filterwarnings("ignore") #suppress warnings
-import matplotlib.pyplot as plt
 import sklearn.model_selection
-from sklearn.preprocessing import StandardScaler
+
+# Task 0: Generate training and test data
 
 guassian = (1, 1)
 identityMatrix = [[1, 0], [0, 1]]
@@ -35,6 +35,7 @@ training_dataset, training_label = np.hsplit(training_dataset, 2)
 
 test_dataset, test_label = np.hsplit(test_dataset, 2)
 
+
 np.random.seed(0)
 
 class Layer_Dense:
@@ -60,6 +61,15 @@ class Activation_ReLU:
         x[x > 0] = 1
         return x
 
+class Loss_MSE:
+
+    def forward(self, y_pred, y_true):
+        MSE = np.square(np.subtract(y_true, y_pred)).mean()
+        return MSE
+
+
+# Task 1: Build fully connected layer model
+
 # Input layer receiving 2 values (x, y data. 2 unique features) with 2 neurons
 inputLayer = Layer_Dense(2, 2)
 
@@ -74,13 +84,79 @@ outputLayer = Layer_Dense(10, 2)
 # Setting the activation function
 activation1 = Activation_ReLU()
 
-# Input layer (2) -> Fully connected layer (10) -> ReLU -> Fully connected layer (10) -> ReLU ->
-# Fullyconnected(output)layer(2)
-inputLayer.forward(training_dataset)
-layer1.forward(inputLayer.output)
-activation1.forward(layer1.output)
-layer2.forward(activation1.output)
-activation1.forward(layer2.output)
-outputLayer.forward(activation1.output)
+loss_function = Loss_MSE()
 
-print(outputLayer.output)
+"""
+print(outputLayer.output[:5])
+
+loss = loss_function.forward(outputLayer.output, training_label)
+
+print('loss: ', loss)
+
+predictions = np.argmax(outputLayer.output, axis=1)  # calculate values along second axis (axis of index 1)
+accuracy = np.mean(predictions == training_label)  # True evaluates to 1; False to 0
+
+print('acc:', accuracy)
+"""
+
+
+# Task 2: forward pass with test data without training process
+
+best_inputLayer_weights = inputLayer.weights
+best_inputLayer_biases = inputLayer.biases
+best_layer1_weights = layer1.weights
+best_layer1_biases = layer1.biases
+best_layer2_weights = layer2.weights
+best_layer2_biases = layer2.biases
+best_outputLayer_weights = outputLayer.weights
+best_outputLayer_biases = outputLayer.biases
+lowest_loss = 99999999
+
+for iteration in range(10000):
+
+    # Generate a new set of weights for iteration
+    inputLayer.weights = 0.05 * np.random.randn(2, 2)
+    inputLayer.biases = 0.05 * np.random.randn(1, 2)
+    layer1.weights = 0.05 * np.random.randn(2, 10)
+    layer1.biases = 0.05 * np.random.randn(1, 10)
+    layer2.weights = 0.05 * np.random.randn(10, 10)
+    layer2.biases = 0.05 * np.random.randn(1, 10)
+    outputLayer.weights = 0.05 * np.random.randn(10, 2)
+    outputLayer.biases = 0.05 * np.random.randn(1, 2)
+
+    # Input layer (2) -> Fully connected layer (10) -> ReLU -> Fully connected layer (10) -> ReLU ->
+    # Fullyconnected(output)layer(2)
+    inputLayer.forward(test_dataset)
+    layer1.forward(inputLayer.output)
+    activation1.forward(layer1.output)
+    layer2.forward(activation1.output)
+    activation1.forward(layer2.output)
+    outputLayer.forward(activation1.output)
+
+    # Calculate loss (from activation output, softmax activation here) and accuracy
+    loss = loss_function.forward(outputLayer.output, test_label)
+
+    # Checking accuracy for the output compared to the one hot encoded labels
+    # Are they predicting the same, then 1 is added to correct, lastly divided by total rows in the dataset.
+    correct = 0
+    total = 0
+    for i in range(len(test_dataset)):
+        act_label = np.argmax(test_label[i])  # act_label = 1 (index)
+        pred_label = np.argmax(outputLayer.output[i])  # pred_label = 1 (index)
+        if act_label == pred_label:
+            correct += 1
+        total += 1
+    accuracy = (correct / total) * 100
+
+    # If loss is smaller - print and save weights and biases aside
+    if loss < lowest_loss:
+        print('New set of weights found, iteration:', iteration, 'loss:', loss, 'acc:', accuracy)
+        best_inputLayer_weights = inputLayer.weights
+        best_inputLayer_biases = inputLayer.biases
+        best_layer1_weights = layer1.weights
+        best_layer1_biases = layer1.biases
+        best_layer2_weights = layer2.weights
+        best_layer2_biases = layer2.biases
+        best_outputLayer_weights = outputLayer.weights
+        best_outputLayer_biases = outputLayer.biases
+        lowest_loss = loss
