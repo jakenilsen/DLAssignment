@@ -112,7 +112,7 @@ best_outputLayer_weights = outputLayer.weights
 best_outputLayer_biases = outputLayer.biases
 lowest_loss = 99999999
 
-for iteration in range(10000):
+for iteration in range(100000):
 
     # Generate a new set of weights for iteration
     inputLayer.weights = 0.05 * np.random.randn(2, 2)
