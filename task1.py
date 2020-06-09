@@ -23,7 +23,7 @@ class Layer_Dense:
     def backward(self, dvalues):
         # Gradients on parameters
         self.dweights = np.dot(self.inputs.T, dvalues)
-        self.dbiases = np.sum(dvalues, axis=0, keepdims=True)
+        self.dbiases = np.sum(dvalues, keepdims=True)
         # Gradient on values
         self.dvalues = np.dot(dvalues, self.weights.T)
 
@@ -42,17 +42,16 @@ class Activation_ReLU:
 
         # Zero gradient where input values were negative
         # self.dvalues[self.inputs <= 0] = 0
-        self.dvalues = np.maximum(0, self.dvalues)
-
+        self.dvalues = np.maximum(0, self.inputs)
 
 # Task 1: Build fully connected layer model
 
 # Input layer receiving 2 values (x, y data. 2 unique features) with 2 neurons
-inputLayer = Layer_Dense(2, 2)
+inputLayer = Layer_Dense(2, 10)
 
 # Two fully connected layers of 10 neurons each, first receiving from the two neurons in input layer
 # then sending to output
-layer1 = Layer_Dense(2, 10)
+layer1 = Layer_Dense(10, 10)
 layer2 = Layer_Dense(10, 2)
 
 # Activation function receiving from the 10 neurons of the last hidden layer, and outputting by two neurons.
